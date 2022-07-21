@@ -29,14 +29,14 @@ async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceive
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)
         if (rows && rows.length > 0) {
-            return onReceived(null, `Project with that project name already exists`)
+            return onReceived(`Project with that project name already exists`)
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
             if (rows && rows.insertId) {
                 return onReceived(null, `record inserted succesfully`)
             }
-            return onReceived(null, `oops ... something went wrong`)
+            return onReceived(`oops ... something went wrong`)
         })
     })
 }
@@ -48,8 +48,7 @@ async function createNewFile({File_Name, Project_ID}, onReceived) {
     VALUES ('${id}', '${Project_ID}', '${File_Name}')`
     await getAll('Projects', (err, result) => {
         if (err) {
-            console.error(err)
-            return
+            return onReceived(err)
         }
         if (result.length > 0) {
             const specificProject = result.filter((record) => {
@@ -57,23 +56,23 @@ async function createNewFile({File_Name, Project_ID}, onReceived) {
             })
             if (specificProject && specificProject.length > 0) {
                 connection.query(query_string_1, (err, rows) => {
-                    if (err) return onReceived(err, null)
+                    if (err) return onReceived(err)
                     if (rows && rows.length > 0) {
                         return onReceived(`File with that name already exists`, null)
                     }
                     connection.query(query_string_2, (err, rows) => {
-                        if (err) return onReceived(err, null)
+                        if (err) return onReceived(err)
                         if (rows.insertId === 0) {
                             return onReceived(null, `record inserted succesfully`)
                         }
-                        return onReceived(`oops ... something went wrong`, null)
+                        return onReceived(`oops ... something went wrong`)
                     })
                 })
                 return
             }
-            return onReceived(`no project with that id exists in the Projects DB`, null)
+            return onReceived(`no project with that id exists in the Projects DB`)
         }
-        return onReceived(`no record in the Projects DB`, null)
+        return onReceived(`no record in the Projects DB`)
     })
 }
 
@@ -85,14 +84,14 @@ async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)
         if (rows.length = 0) {
-            return onReceived(null, `no records match that id`)
+            return onReceived(`no records match that id`)
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
             if (rows && rows.insertId) {
                 return onReceived(null, `record updated succesfully`)
             }
-            return onReceived(null, `oops ... something went wrong`)
+            return onReceived(`oops ... something went wrong`)
         })
     })
 }
@@ -103,14 +102,14 @@ async function DeleteProject({id}, onReceived) {
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)
         if (rows.length = 0) {
-            return onReceived(null, `no records match that id`)
+            return onReceived(`no records match that id`)
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
             if (rows && rows.insertId) {
                 return onReceived(null, `record deleted succesfully`)
             }
-            return onReceived(null, `oops ... something went wrong`)
+            return onReceived(`oops ... something went wrong`)
         })
     })
 }
@@ -121,14 +120,14 @@ async function DeleteFile({id}, onReceived) {
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)
         if (rows.length = 0) {
-            return onReceived(null, `no records match that id`)
+            return onReceived(`no records match that id`)
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
             if (rows && rows.insertId) {
                 return onReceived(null, `record deleted succesfully`)
             }
-            return onReceived(null, `oops ... something went wrong`)
+            return onReceived(`oops ... something went wrong`)
         })
     })
 }
