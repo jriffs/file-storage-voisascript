@@ -1,4 +1,4 @@
-// require('dotenv').config()
+require('dotenv').config()
 const mysql = require('mysql2')
 const { Unique } = require('../utils/generate-random')
 
@@ -46,18 +46,34 @@ async function createNewFile({File_Name, Project_ID}, onReceived) {
     const query_string_1 = `SELECT * FROM Files WHERE File_Name='${File_Name}'`
     const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name)
     VALUES ('${id}', '${Project_ID}', '${File_Name}')`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err, null)
-        if (rows && rows.length > 0) {
-            return onReceived(null, `File with that name already exists`)
+    await getAll('Projects', (err, result) => {
+        if (err) {
+            console.error(err)
+            return
         }
-        connection.query(query_string_2, (err, rows) => {
-            if (err) return onReceived(err)
-            if (rows.insertId === 0) {
-                return onReceived(null, `record inserted succesfully`)
+        if (result.length > 0) {
+            const specificProject = result.filter((record) => {
+                return record.id == Project_ID
+            })
+            if (specificProject && specificProject.length > 0) {
+                connection.query(query_string_1, (err, rows) => {
+                    if (err) return onReceived(err, null)
+                    if (rows && rows.length > 0) {
+                        return onReceived(`File with that name already exists`, null)
+                    }
+                    connection.query(query_string_2, (err, rows) => {
+                        if (err) return onReceived(err, null)
+                        if (rows.insertId === 0) {
+                            return onReceived(null, `record inserted succesfully`)
+                        }
+                        return onReceived(`oops ... something went wrong`, null)
+                    })
+                })
+                return
             }
-            return onReceived(null, `oops ... something went wrong`)
-        })
+            return onReceived(`no project with that id exists in the Projects DB`, null)
+        }
+        return onReceived(`no record in the Projects DB`, null)
     })
 }
 
@@ -117,6 +133,16 @@ async function DeleteFile({id}, onReceived) {
     })
 }
 
+createNewFile({
+    Project_ID: '1',
+    File_Name: `something-something.mp3`
+}, (err, result) => {
+    if (err) {
+        console.error(err)
+        return
+    }
+    console.log(result)
+})
 
 module.exports = { getAll, createNewProject, createNewFile, UpdateProject, DeleteProject, DeleteFile }
 
