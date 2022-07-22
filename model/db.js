@@ -33,7 +33,7 @@ async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceive
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
-            if (rows && rows.insertId) {
+            if (rows && rows.insertId == 0) {
                 return onReceived(null, `record inserted succesfully`)
             }
             return onReceived(`oops ... something went wrong`)
@@ -88,7 +88,7 @@ async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
-            if (rows && rows.insertId) {
+            if (rows && rows.insertId == 0) {
                 return onReceived(null, `record updated succesfully`)
             }
             return onReceived(`oops ... something went wrong`)
@@ -106,7 +106,7 @@ async function DeleteProject({id}, onReceived) {
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
-            if (rows && rows.insertId) {
+            if (rows && rows.insertId == 0) {
                 return onReceived(null, `record deleted succesfully`)
             }
             return onReceived(`oops ... something went wrong`)
@@ -124,7 +124,7 @@ async function DeleteFile({id}, onReceived) {
         }
         connection.query(query_string_2, (err, rows) => {
             if (err) return onReceived(err)
-            if (rows && rows.insertId) {
+            if (rows && rows.insertId == 0) {
                 return onReceived(null, `record deleted succesfully`)
             }
             return onReceived(`oops ... something went wrong`)
