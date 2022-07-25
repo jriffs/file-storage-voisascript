@@ -7,8 +7,8 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, callback) => {
     // attaching the generated filename to the request object so it can be accessed from the controller and stored to the database
-    req.theFileName = req.body.name + Date.now() + file.fieldname + ".jpg";
-    callback(null, req.body.name + Date.now() + file.fieldname + ".jpg");
+    req.theFileName = req.body.name + Date.now() + file.fieldname + ".mp3";
+    callback(null, req.body.name + Date.now() + file.fieldname + ".mp3");
   },
 });
 
