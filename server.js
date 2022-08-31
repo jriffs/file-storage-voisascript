@@ -1,6 +1,6 @@
 import express from 'express';
 import { routes } from './routes/routes.js'
-import test from './model/db.js'
+import connectdb from './model/db.js'
 
 const app = express();
 const {projectRoute, fileRoute} = routes
@@ -13,8 +13,11 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   next()
 })
-test()
+
 const port = process.env.PORT || 5000;
+
+// database connection 
+connectdb()
 
 // router for all the project endpoint
 app.use("/project", projectRoute);
