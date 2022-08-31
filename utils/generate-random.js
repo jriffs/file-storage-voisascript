@@ -1,4 +1,4 @@
-function Unique() {
+export function Unique() {
     function random(min, max) {
             //check if ma and min are numbers
             if(Number(min) != 'NaN' && Number(max) != 'NaN'){
@@ -18,4 +18,3 @@ function Unique() {
     return name
 }
 
-module.exports = {Unique}

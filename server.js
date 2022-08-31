@@ -1,7 +1,11 @@
-const express = require("express");
-const { projectRoute, fileRoute } = require("./routes/routes");
-const app = express();
+import express from 'express';
+import { routes } from './routes/routes.js'
+import test from './model/db.js'
 
+const app = express();
+const {projectRoute, fileRoute} = routes
+
+// json parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(function(req, res, next) {
@@ -9,7 +13,7 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   next()
 })
-
+test()
 const port = process.env.PORT || 5000;
 
 // router for all the project endpoint
