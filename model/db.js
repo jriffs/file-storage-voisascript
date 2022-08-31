@@ -1,18 +1,24 @@
-require('dotenv').config()
-const mysql = require('mysql2')
-const { Unique } = require('../utils/generate-random')
-
+import env from 'dotenv'
+import mysql from 'mysql2'
+import { v4 } from 'uuid'
+// import { Unique } from '../utils/generate-random.js'
+const Unique = v4()
+env.config()
 const db_URL = process.env.database_url
+
 const connection = mysql.createConnection(db_URL)
 
-connection.connect((err) => {
-    if (err) {
-        throw err
-    }
-    console.log('successfully connected 👍👍')
-})
+export default function connectdb(){
+    connection.connect((err) => {
+        if (err) {
+            throw err
+        }
+        console.log('successfully connected 👍👍')
+       
+    })
+}
 
-async function getAll(table, onRowsReceived) { 
+export async function getAll(table, onRowsReceived) { 
     const query_string = `SELECT * FROM ${table}`
     connection.query(query_string, (err, rows) => {
         if (err) {
@@ -22,7 +28,7 @@ async function getAll(table, onRowsReceived) {
     })
 }
 
-async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceived) {
+export async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceived) {
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}'`
     const query_string_2 = `INSERT INTO Projects (User_ID	, Project_Name, 	Project_Desc)
     VALUES ('${User_ID}', '${Project_Name}', '${Project_Desc}')`
@@ -41,8 +47,8 @@ async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceive
     })
 }
 
-async function createNewFile({File_Name, Project_ID}, onReceived) {
-    const id = `${Unique()}`
+export async function createNewFile({File_Name, Project_ID}, onReceived) {
+    const id = `${Unique}`
     const query_string_1 = `SELECT * FROM Files WHERE File_Name='${File_Name}'`
     const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name)
     VALUES ('${id}', '${Project_ID}', '${File_Name}')`
@@ -76,7 +82,7 @@ async function createNewFile({File_Name, Project_ID}, onReceived) {
     })
 }
 
-async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
+export async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
     const query_string_1 = `SELECT * FROM Projects WHERE id='${id}'`
     const query_string_2 = `UPDATE Projects 
     SET Project_Name='${Project_Name}', Project_Desc='${Project_Desc}' 
@@ -96,7 +102,7 @@ async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
     })
 }
 
-async function DeleteProject({id}, onReceived) {
+export async function DeleteProject({id}, onReceived) {
     const query_string_1 = `SELECT * FROM Projects WHERE id='${id}'`
     const query_string_2 = `delete Projects, Files from Projects inner join Files on Files.Project_ID=Projects.id where Projects.id=${id}`
     connection.query(query_string_1, (err, rows) => {
@@ -114,7 +120,7 @@ async function DeleteProject({id}, onReceived) {
     })
 }
 
-async function DeleteFile({id}, onReceived) {
+export async function DeleteFile({id}, onReceived) {
     const query_string_1 = `SELECT * FROM Files WHERE id='${id}'`
     const query_string_2 = `delete from Files where id='${id}'`
     connection.query(query_string_1, (err, rows) => {
@@ -132,18 +138,7 @@ async function DeleteFile({id}, onReceived) {
     })
 }
 
-createNewFile({
-    Project_ID: '1',
-    File_Name: `something-something.mp3`
-}, (err, result) => {
-    if (err) {
-        console.error(err)
-        return
-    }
-    console.log(result)
-})
 
-module.exports = { getAll, createNewProject, createNewFile, UpdateProject, DeleteProject, DeleteFile }
 
 
 

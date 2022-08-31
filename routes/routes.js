@@ -1,9 +1,9 @@
-const fileRouter = require("./fileRoutes");
-const projectRouter = require("./projectRoutes");
+import {fileRouter} from './fileRoutes.js'
+import {projectRouter} from './projectRoutes.js';
 
-const routes = {
+
+ export const routes = {
   fileRoute: fileRouter,
   projectRoute: projectRouter,
-};
 
-module.exports = routes;
+ }
