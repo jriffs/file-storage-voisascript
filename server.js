@@ -1,6 +1,7 @@
 import express from 'express';
 import { routes } from './routes/routes.js'
 import connectdb from './model/db.js'
+import { getAll } from './model/db.js';
 
 const app = express();
 const {projectRoute, fileRoute} = routes
@@ -18,6 +19,7 @@ const port = process.env.PORT || 5000;
 
 // database connection 
 connectdb()
+
 
 // router for all the project endpoint
 app.use("/project", projectRoute);

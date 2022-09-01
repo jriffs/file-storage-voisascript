@@ -14,7 +14,7 @@ export default function connectdb(){
             throw err
         }
         console.log('successfully connected 👍👍')
-       
+        
     })
 }
 
@@ -26,6 +26,10 @@ export async function getAll(table, onRowsReceived) {
         }
         return onRowsReceived(null, rows) 
     })
+}
+
+export async function getOne({User_id, Project_Name}){
+    
 }
 
 export async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceived) {
