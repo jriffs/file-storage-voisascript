@@ -90,10 +90,10 @@ export async function createNewFile({File_Name, Project_ID}, onReceived) {
     })
 }
 
-export async function UpdateProject({ OldProject_Name, Project_Desc}, onReceived) {
+export async function UpdateProject({ OldProject_Name, NewProjectName, Project_Desc}, onReceived) {
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${OldProject_Name}'`
     const query_string_2 = `UPDATE Projects 
-    SET Project_Name='${Project_Name}', Project_Desc='${Project_Desc}' 
+    SET Project_Name='${NewProjectName}', Project_Desc='${Project_Desc}' 
     WHERE id=${id}`
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)

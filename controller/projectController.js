@@ -1,5 +1,5 @@
 import { request } from "express"
-import { getAll,getOneUProject } from "../model/db.js"
+import { getAll,getOneUProject,UpdateProject } from "../model/db.js"
 
 // get one project
 export function getProject(req, res){
@@ -21,11 +21,15 @@ export function GetAllRowsFromProjectTable(req,res){
     
 }
 // update project
-export function UpdateIndividualUser(req,res){
-    Updateproject(req.params.id,(nul,value)=>{
-        res.json({
-            Message: value
-         })
-    })
+// export function UpdateIndividualProject(req,res){
+//     UpdateProject(req.params.opn,res.body.npn,res.body.pd,()=>{
+//             res.json({
+//                 old:req.params.opn,
+//                 new:res.body.npn,
+//                 desc:res.body.pd
+//             })
+//     })
+        
+    
    
 }
