@@ -28,8 +28,12 @@ export async function getAll(table, onRowsReceived) {
     })
 }
 
-export async function getOne({User_id, Project_Name}){
-    
+export async function getOneUProject(Project_Name, onReceived){
+    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}'`
+    connection.query(query_string_1, (err, rows) => {
+        if (err) return onReceived(err)
+        return onReceived(rows)
+})
 }
 
 export async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceived) {
@@ -86,8 +90,8 @@ export async function createNewFile({File_Name, Project_ID}, onReceived) {
     })
 }
 
-export async function UpdateProject({id, Project_Name, Project_Desc}, onReceived) {
-    const query_string_1 = `SELECT * FROM Projects WHERE id='${id}'`
+export async function UpdateProject({ OldProject_Name, Project_Desc}, onReceived) {
+    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${OldProject_Name}'`
     const query_string_2 = `UPDATE Projects 
     SET Project_Name='${Project_Name}', Project_Desc='${Project_Desc}' 
     WHERE id=${id}`
