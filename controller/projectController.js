@@ -6,7 +6,7 @@ export function getProject(req, res){
     getOneUProject(req.params.User_id,(value)=>{
         res.json({
             Message: value
-         })
+        })
     })
 };
 
@@ -15,10 +15,8 @@ export function GetAllRowsFromProjectTable(req,res){
     getAll('Projects' , (a,v)=>{
         res.status(200).json({
             Projects:v,
-           
-    })
         })
-    
+    }) 
 }
 // update project
 // export function UpdateIndividualProject(req,res){

@@ -5,5 +5,4 @@ import {projectRouter} from './projectRoutes.js';
  export const routes = {
   fileRoute: fileRouter,
   projectRoute: projectRouter,
-
- }
+}

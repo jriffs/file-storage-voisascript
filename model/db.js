@@ -32,7 +32,7 @@ export async function getOneUProject(Project_Name, onReceived){
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}'`
     connection.query(query_string_1, (err, rows) => {
         if (err) return onReceived(err)
-        return onReceived(rows)
+        return onReceived(null, rows)
 })
 }
 
