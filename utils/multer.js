@@ -1,4 +1,4 @@
-import multer from 'multer'
+/* import multer from 'multer'
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -14,5 +14,16 @@ const storage = multer.diskStorage({
 
 // creating an instance
 export const upload = multer({ storage: storage });
+ */
 
+import multer, { memoryStorage } from "multer";
+import { promisify } from 'util';
+
+const storage = memoryStorage()
+
+// creating an instance
+const upload = multer({ storage: storage }).single('audio')
+const preparedFileMiddleware = promisify(upload)
+
+export default preparedFileMiddleware
 
