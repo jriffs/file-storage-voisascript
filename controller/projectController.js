@@ -4,7 +4,7 @@ import { getAll,getOneUProject,UpdateProject } from "../model/db.js"
 // get one project
 export function getProject(req, res){
     getOneUProject(req.params.User_id,(value)=>{
-        res.json({
+        res.status(200).json({
             Message: value
          })
     })
@@ -20,16 +20,16 @@ export function GetAllRowsFromProjectTable(req,res){
         })
     
 }
-// update project
-// export function UpdateIndividualProject(req,res){
-//     UpdateProject(req.params.opn,res.body.npn,res.body.pd,()=>{
-//             res.json({
-//                 old:req.params.opn,
-//                 new:res.body.npn,
-//                 desc:res.body.pd
-//             })
-//     })
-        
+// update one project
+export function UpdateIndividualProject(req,res){
+    // getting users details
+    const oldProjectName = req.params.opn
+    const newProjectName = req.body.npn
+    const newProjectDescription = req.body.npd
+   
+    UpdateProject(oldProjectName,newProjectName,newProjectDescription,(value)=>{
+            res.send(value)
+    })    
     
    
-//}
+}
