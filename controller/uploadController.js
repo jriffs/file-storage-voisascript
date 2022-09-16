@@ -4,4 +4,4 @@ const uploadController = (req, res) => {
   res.send(req.theFileName);
 };
 
-module.exports = uploadController;
+export default uploadController;
