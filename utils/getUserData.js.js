@@ -16,7 +16,4 @@ async function getUserData(){
   }
 }
 
-// calling the function
-getUserData().then(result => {
-  console.log(result);
-})
+export default getUserData;
