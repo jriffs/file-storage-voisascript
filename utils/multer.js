@@ -23,7 +23,7 @@ const storage = memoryStorage()
 
 // creating an instance
 const upload = multer({ storage: storage }).single('audio')
-const preparedFileMiddleware = promisify(upload)
+export const preparedFileMiddleware = promisify(upload)
 
-export default preparedFileMiddleware
+
 

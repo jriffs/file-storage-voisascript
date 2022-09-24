@@ -1,12 +1,13 @@
 import env from 'dotenv'
 import mysql from 'mysql2'
 import { v4 } from 'uuid'
+import { promisify } from "util";
 // import { Unique } from '../utils/generate-random.js'
-const Unique = v4()
 env.config()
 const db_URL = process.env.database_url
 
 const connection = mysql.createConnection(db_URL)
+const query = promisify(connection.query).bind(connection)
 
 export default function connectdb(){
     connection.connect((err) => {
@@ -14,136 +15,179 @@ export default function connectdb(){
             throw err
         }
         console.log('successfully connected 👍👍')
-        
     })
 }
 
-export async function getAll(table, onRowsReceived) { 
+export async function getAll(table) { 
     const query_string = `SELECT * FROM ${table}`
-    connection.query(query_string, (err, rows) => {
-        if (err) {
-           return onRowsReceived(err)
-        }
-        return onRowsReceived(null, rows) 
-    })
+    const result = await query(query_string).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result.code}`}
+    }
+    return result
 }
 
-export async function getOneUProject(Project_Name, onReceived){
-    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}'`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err)
-        return onReceived(null, rows)
-})
+export async function getAllProjectsByUser(userID) { 
+    const query_string = `SELECT * FROM Projects where User_ID='${userID}'`
+    const result = await query(query_string).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result.code}`}
+    }return result
 }
 
-export async function createNewProject({User_ID, Project_Name, Project_Desc}, onReceived) {
-    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}'`
-    const query_string_2 = `INSERT INTO Projects (User_ID	, Project_Name, 	Project_Desc)
-    VALUES ('${User_ID}', '${Project_Name}', '${Project_Desc}')`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err)
-        if (rows && rows.length > 0) {
-            return onReceived(`Project with that project name already exists`)
-        }
-        connection.query(query_string_2, (err, rows) => {
-            if (err) return onReceived(err)
-            if (rows && rows.insertId == 0) {
-                return onReceived(null, `record inserted succesfully`)
-            }
-            return onReceived(`oops ... something went wrong`)
-        })
-    })
+export async function getAllFilesByUser(projectID) { 
+    const query_string = `select * from Files where Project_ID='${projectID}'`
+    const result = await query(query_string).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result.code}`}
+    }
+    return result
 }
 
-export async function createNewFile({File_Name, Project_ID}, onReceived) {
-    const id = `${Unique}`
-    const query_string_1 = `SELECT * FROM Files WHERE File_Name='${File_Name}'`
-    const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name)
-    VALUES ('${id}', '${Project_ID}', '${File_Name}')`
-    await getAll('Projects', (err, result) => {
-        if (err) {
-            return onReceived(err)
+export async function getOneProjectByUser(Project_ID, userID, projectName){
+    const query_string_1 = `SELECT * FROM Projects WHERE id='${Project_ID}' and User_ID='${userID}'`
+    const query_string_2 = `SELECT * FROM Projects WHERE Project_Name='${projectName}' and User_ID='${userID}'`
+    if (projectName) {
+        const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+        if (result?.errno) {
+            return {error: `${result.code}`}
         }
-        if (result.length > 0) {
-            const specificProject = result.filter((record) => {
-                return record.id == Project_ID
-            })
-            if (specificProject && specificProject.length > 0) {
-                connection.query(query_string_1, (err, rows) => {
-                    if (err) return onReceived(err)
-                    if (rows && rows.length > 0) {
-                        return onReceived(`File with that name already exists`, null)
-                    }
-                    connection.query(query_string_2, (err, rows) => {
-                        if (err) return onReceived(err)
-                        if (rows.insertId === 0) {
-                            return onReceived(null, `record inserted succesfully`)
-                        }
-                        return onReceived(`oops ... something went wrong`)
-                    })
-                })
-                return
-            }
-            return onReceived(`no project with that id exists in the Projects DB`)
-        }
-        return onReceived(`no record in the Projects DB`)
-    })
+        return result
+    }
+    const result = await query(query_string_1).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result.code}`}
+    }
+    return result
 }
 
-export async function UpdateProject({ OldProject_Name, NewProjectName, Project_Desc}, onReceived) {
-    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${OldProject_Name}'`
+export async function getOneFile(id, projectID, File_Name){
+    const query_string_1 = `SELECT * FROM Files WHERE id='${id}' and Project_ID='${projectID}'`
+    const query_string_2 = `SELECT * FROM Files WHERE File_Name='${File_Name}' and Project_ID='${projectID}'`
+    if (File_Name) {
+        const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+        if (result?.errno) {
+            return {error: `${result.code}`}
+        }
+        return result
+    }
+    const result = await query(query_string_1).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result.code}`}
+    }
+    return result
+}
+
+export async function createNewProject({User_ID, Project_Name, Project_Desc}) {
+    const id = `${v4()}`
+    console.log(id)
+    const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}' and User_ID='${User_ID}'`
+    const query_string_2 = `INSERT INTO Projects (id, User_ID, Project_Name, Project_Desc)
+    VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}')`
+    const result_1 = await query(query_string_1).then((result) => {return result}, (err) => {return err})
+    if (result_1?.errno) {
+        return {error: `${result_1.code}`}
+    }
+    if (result_1.length > 0) {
+        return {error: 'Project with that project name already exists'}
+    }
+    const result_2 = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result_2.errno) {
+        return {error: `${result_2}`}
+    }
+    return {success: `project created succesfully`} 
+}
+
+export async function createNewFile({ User_ID, File_Name, Project_ID, fileURL}, onReceived) {
+    const id = `${v4()}`
+    const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name, File_URL)
+    VALUES ('${id}', '${Project_ID}', '${File_Name}', '${fileURL}')`    
+    const project = await getOneProjectByUser(Project_ID, User_ID)
+    if (project?.error) {
+        return {error: `${project.error}`}
+    }
+    if (project.length == 0) {
+        return {error: `No Project with that Project_ID`}
+    }
+    const Existing_file = await getOneFile(null, Project_ID, File_Name)
+    if (Existing_file?.error) {
+        return {error: `${Existing_file?.error}`}
+    }
+    if (Existing_file.length > 0) {
+        return {error: `File with that name already exists`}
+    }
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'file successfully created'}
+}
+
+export async function UpdateProject({ Project_ID, User_ID, NewProjectName, Project_Desc}) {
     const query_string_2 = `UPDATE Projects 
     SET Project_Name='${NewProjectName}', Project_Desc='${Project_Desc}' 
-    WHERE id=${id}`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err)
-        if (rows.length = 0) {
-            return onReceived(`no records match that id`)
-        }
-        connection.query(query_string_2, (err, rows) => {
-            if (err) return onReceived(err)
-            if (rows && rows.insertId == 0) {
-                return onReceived(null, `record updated succesfully`)
-            }
-            return onReceived(`oops ... something went wrong`)
-        })
-    })
+    WHERE id='${Project_ID}' and User_ID='${User_ID}'`
+    const project = await getOneProjectByUser(Project_ID, User_ID)
+    if (project?.error) {
+        return {error: `${project.error}`}
+    }
+    if (project.length == 0) {
+        return {error: `No Project with that Project_ID`}
+    }
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'project successfully updated'}
 }
 
-export async function DeleteProject({id}, onReceived) {
-    const query_string_1 = `SELECT * FROM Projects WHERE id='${id}'`
-    const query_string_2 = `delete Projects, Files from Projects inner join Files on Files.Project_ID=Projects.id where Projects.id=${id}`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err)
-        if (rows.length = 0) {
-            return onReceived(`no records match that id`)
-        }
-        connection.query(query_string_2, (err, rows) => {
-            if (err) return onReceived(err)
-            if (rows && rows.insertId == 0) {
-                return onReceived(null, `record deleted succesfully`)
-            }
-            return onReceived(`oops ... something went wrong`)
-        })
-    })
+export async function UpdateFileURL({ Project_ID, File_Name, User_ID, fileURL}) {
+    const query_string_2 = `UPDATE Files 
+    SET File_URL='${fileURL}' WHERE Project_ID='${Project_ID}' and File_Name='${File_Name}'`
+    const project = await getOneProjectByUser(Project_ID, User_ID)
+    if (project?.error) {
+        return {error: `${project.error}`}
+    }
+    if (project.length == 0) {
+        return {error: `No Project with that Project_ID`}
+    }
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'File successfully updated'}
 }
 
-export async function DeleteFile({id}, onReceived) {
-    const query_string_1 = `SELECT * FROM Files WHERE id='${id}'`
+export async function DeleteProject({id, User_ID}) {
+    const query_string_2 = `delete Projects, Files from Projects inner join Files on Files.Project_ID=Projects.id where Projects.id='${id}' and User_ID='${User_ID}'`
+    const project = await getOneProjectByUser(id, User_ID)
+    if (project?.error) {
+        return {error: `${project.error}`}
+    }
+    if (project.length == 0) {
+        return {error: `No Project with that Project_ID`}
+    }
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'project successfully deleted'}
+}
+
+export async function DeleteFile({id, Project_ID}) {
     const query_string_2 = `delete from Files where id='${id}'`
-    connection.query(query_string_1, (err, rows) => {
-        if (err) return onReceived(err)
-        if (rows.length = 0) {
-            return onReceived(`no records match that id`)
-        }
-        connection.query(query_string_2, (err, rows) => {
-            if (err) return onReceived(err)
-            if (rows && rows.insertId == 0) {
-                return onReceived(null, `record deleted succesfully`)
-            }
-            return onReceived(`oops ... something went wrong`)
-        })
-    })
+    const file = await getOneFile(id, Project_ID)
+    if (file?.error) {
+        return {error: `${file.error}`}
+    }
+    if (file.length == 0) {
+        return {error: `No file with that ID`}
+    }
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'File successfully deleted'}
 }
 
 

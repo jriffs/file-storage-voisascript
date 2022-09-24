@@ -1,7 +1,7 @@
 import express from 'express';
 import { routes } from './routes/routes.js'
 import connectdb from './model/db.js'
-import { getAll } from './model/db.js';
+import { preparedFileMiddleware } from "./utils/multer.js";
 
 const app = express();
 const {projectRoute, fileRoute} = routes
@@ -9,6 +9,8 @@ const {projectRoute, fileRoute} = routes
 // json parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(preparedFileMiddleware)
+// app.use(localBodyParser) // use when req.body is empty
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
@@ -22,7 +24,7 @@ connectdb()
 
 
 // router for all the project endpoint
-app.use("/project", projectRoute);
+app.use("/projects", projectRoute);
 // router for all the files endpoint
 app.use("/files", fileRoute);
 
