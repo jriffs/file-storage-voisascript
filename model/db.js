@@ -80,7 +80,6 @@ export async function getOneFile(id, projectID, File_Name){
 
 export async function createNewProject({User_ID, Project_Name, Project_Desc}) {
     const id = `${v4()}`
-    console.log(id)
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}' and User_ID='${User_ID}'`
     const query_string_2 = `INSERT INTO Projects (id, User_ID, Project_Name, Project_Desc)
     VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}')`
@@ -107,7 +106,7 @@ export async function createNewFile({ User_ID, File_Name, Project_ID, fileURL}, 
         return {error: `${project.error}`}
     }
     if (project.length == 0) {
-        return {error: `No Project with that Project_ID`}
+        return {error: `No Project with that Project_ID`, at: 'creat new file'}
     }
     const Existing_file = await getOneFile(null, Project_ID, File_Name)
     if (Existing_file?.error) {
@@ -132,7 +131,7 @@ export async function UpdateProject({ Project_ID, User_ID, NewProjectName, Proje
         return {error: `${project.error}`}
     }
     if (project.length == 0) {
-        return {error: `No Project with that Project_ID`}
+        return {error: `No Project with that Project_ID`, at: 'update project'}
     }
     const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
     if (result?.errno) {
@@ -149,7 +148,7 @@ export async function UpdateFileURL({ Project_ID, File_Name, User_ID, fileURL}) 
         return {error: `${project.error}`}
     }
     if (project.length == 0) {
-        return {error: `No Project with that Project_ID`}
+        return {error: `No Project with that Project_ID`, at: 'update file url'}
     }
     const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
     if (result?.errno) {
@@ -165,7 +164,7 @@ export async function DeleteProject({id, User_ID}) {
         return {error: `${project.error}`}
     }
     if (project.length == 0) {
-        return {error: `No Project with that Project_ID`}
+        return {error: `No Project with that Project_ID`, at: 'delete project'}
     }
     const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
     if (result?.errno) {

@@ -4,4 +4,4 @@ export const fileRouter = express.Router();
 // uploading a file
 fileRouter.post("/upload", uploadController);
 
-fileRouter.get('/url', getMainFileURL)
+fileRouter.get('/:projectID/url', getMainFileURL)
