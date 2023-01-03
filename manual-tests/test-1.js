@@ -6,4 +6,11 @@ async function somn () {
     console.table([finalProjectsArr, projectStat, finalFilesArr, fileStat])
 }
 
-somn()
+// somn()
+
+async function doSomn() {
+    const result = await getAllProjectsByUser('65e3aa8b-e18c-453b-bc2e-8b330dfa9021')
+    console.log(result.length)
+}
+
+doSomn()

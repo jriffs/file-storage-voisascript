@@ -28,5 +28,32 @@ export async function constructData(userID) {
     return data
 }
 
+export async function FinalConstructData(userId, username, url, userToken) {
+    const { finalProjectsArr, projectStat, finalFilesArr, fileStat} = await constructData(userId)
+    if (url) {
+        return {
+            url,
+            userToken,
+            username,
+            projects: finalProjectsArr,
+            files: finalFilesArr,
+            stats: {
+            projects: projectStat,
+            files: fileStat
+            } 
+        }
+    }
+    return {
+        userToken,
+        username,
+        projects: finalProjectsArr,
+        files: finalFilesArr,
+        stats: {
+          projects: projectStat,
+          files: fileStat
+        } 
+    }
+}
+
 /* let data = await constructData('65e3aa8b-e18c-453b-bc2e-8b330dfa9021')
 console.log(data) */

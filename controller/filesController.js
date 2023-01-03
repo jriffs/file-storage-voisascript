@@ -1,18 +1,15 @@
 import { preparedFileMiddleware } from "../utils/multer.js";
-import { uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFileRefference} from "../utils/firebase-fileStorage.js";
 import { createNewFile, createNewProject, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
-import { constructData } from "../utils/construct-data.js";
+import { FinalConstructData } from "../utils/construct-data.js";
 import { Events } from "../utils/events.js";
 import getBearer from "../utils/getBearerToken.js";
 
 export async function uploadController(req, res) {
   const userData = await checkUser(req, res)
-  if (!userData) {
-    console.log(`userData is ${userData}`)
-    return
-  }
+  if (!userData || userData.error) return
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Please upload a file!" })
@@ -23,16 +20,15 @@ export async function uploadController(req, res) {
     const project = req.body?.project,
     projectName = project?.split('~')[0],
     projectID = project?.split('~')[1],
-    storageRef = getFileRefference(`@${userData?.username}/projects/${projectName}/${req.file.originalname}`)
+    storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${req.file.originalname}`)
     if (projectName && projectID) {
       const result = await createNewFile({
-        User_ID: userData.userID,
+        User_ID: userData?.data?.userID,
         File_Name: req.file.originalname,
         fileURL: '',
         Project_ID: projectID
       })
       if (result?.error) {
-        console.log(result.error)
         return res.send({error: `${result.error}`, occured: 'At creating new file'})
       }
       const uploadTask = uploadBytesResumable(storageRef, req.file.buffer, req.file.mimetype)
@@ -50,32 +46,25 @@ export async function uploadController(req, res) {
         const result = await UpdateFileURL({
           Project_ID: projectID,
           File_Name: req.file.originalname,
-          User_ID: userData.userID,
+          User_ID: userData?.data?.userID,
           fileURL: downloadURL
         })
         if (result.error) {
           return res.status(400).send(result)
         }
         const constructedURL = `http://localhost:5000/files/${projectID}/url?filename=${req.file.originalname}`
-        const { finalProjectsArr, projectStat, finalFilesArr, fileStat} = await constructData(userData.userID)
-        res.status(200).json({
-          url: constructedURL,
-          userId: userData.userId,
-          username: userData.username,
-          projects: finalProjectsArr,
-          files: finalFilesArr,
-          stats: {
-            projects: projectStat,
-            files: fileStat
-          } 
-        })
+        const Data = await FinalConstructData(userData?.data?.userID, userData?.data?.username, constructedURL, userData.userToken)
+        return res.status(200).json(Data)
       }
     }
     
   } catch (err) {
-    console.log(err)
     return res.status(400).send(err)
   }
+}
+
+export async function deleteFileController(req, res) {
+  
 }
 
 export async function getMainFileURL(req, res) {
@@ -104,19 +93,13 @@ async function checkUser(request, response) {
   const Bearer = getBearer(request)
   const somn = await authenticate(Bearer)
   if (somn.error) {
-      response.status(400).send(somn.error)
-      return
+      response.status(400).send({error: `${somn.error}`})
+      return {error: somn.error}
   }
   if (somn.isUser === false) {
-      response.sendStatus(403)
-      return
+      response.status(400).send({error: 'Unauthorized User !!'})
+      return {error: somn.error}
   }
-  return somn.userData
+  return {data: somn.userData, userToken: Bearer}
 }
 
-/* function getBearer(NetworkRequest) {
-  const authType = NetworkRequest?.headers?.authorization?.split(' ')[0]
-  if (authType === 'Bearer') {
-    return NetworkRequest?.headers?.authorization.split(' ')[1]
-  }
-} */

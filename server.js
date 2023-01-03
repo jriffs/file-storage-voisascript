@@ -1,6 +1,6 @@
 import express from 'express';
 import { routes } from './routes/routes.js'
-import connectdb from './model/db.js'
+// import connectdb from './model/db.js'
 import { preparedFileMiddleware } from "./utils/multer.js";
 
 const app = express();
@@ -20,7 +20,7 @@ app.use(function(req, res, next) {
 const port = process.env.PORT || 5000;
 
 // database connection 
-connectdb()
+// connectdb()
 
 
 // router for all the project endpoint

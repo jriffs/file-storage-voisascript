@@ -2,6 +2,7 @@ import env from 'dotenv'
 import mysql from 'mysql2'
 import { v4 } from 'uuid'
 import { promisify } from "util";
+import { async } from '@firebase/util';
 // import { Unique } from '../utils/generate-random.js'
 env.config()
 const db_URL = process.env.database_url
@@ -9,14 +10,12 @@ const db_URL = process.env.database_url
 const connection = mysql.createConnection(db_URL)
 const query = promisify(connection.query).bind(connection)
 
-export default function connectdb(){
-    connection.connect((err) => {
-        if (err) {
-            throw err
-        }
-        console.log('successfully connected 👍👍')
-    })
-}
+connection.connect((err) => {
+    if (err) {
+        throw err
+    }
+    console.log('successfully connected 👍👍')
+})
 
 export async function getAll(table) { 
     const query_string = `SELECT * FROM ${table}`
@@ -158,7 +157,7 @@ export async function UpdateFileURL({ Project_ID, File_Name, User_ID, fileURL}) 
 }
 
 export async function DeleteProject({id, User_ID}) {
-    const query_string_2 = `delete Projects, Files from Projects inner join Files on Files.Project_ID=Projects.id where Projects.id='${id}' and User_ID='${User_ID}'`
+    const query_string_2 = `delete from Projects where id='${id}' and User_ID='${User_ID}'`
     const project = await getOneProjectByUser(id, User_ID)
     if (project?.error) {
         return {error: `${project.error}`}
@@ -182,6 +181,11 @@ export async function DeleteFile({id, Project_ID}) {
     if (file.length == 0) {
         return {error: `No file with that ID`}
     }
+    
+}
+
+export async function deleteAllFileUnderProject(projectID) {
+    const query_string_2 = `delete from Files where Project_ID='${projectID}'`
     const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
     if (result?.errno) {
         return {error: `${result?.code}`}

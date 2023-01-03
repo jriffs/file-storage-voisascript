@@ -1,5 +1,5 @@
 import express from 'express'
-import {uploadController, getMainFileURL} from '../controller/uploadController.js'
+import {uploadController, getMainFileURL} from '../controller/filesController.js'
 export const fileRouter = express.Router();
 // uploading a file
 fileRouter.post("/upload", uploadController);
