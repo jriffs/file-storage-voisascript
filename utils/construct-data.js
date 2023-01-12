@@ -6,9 +6,9 @@ export async function constructData(userID) {
     finalFilesArr = [],
     fileStat = 0
     const projectsArr = await getAllProjectsByUser(userID)
-    console.log(projectsArr)
     if (projectsArr?.error) {
         console.log(projectsArr.error)
+        return
     }
     for (const project of projectsArr) {
         const {id} = project

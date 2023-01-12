@@ -1,7 +1,7 @@
 import { preparedFileMiddleware } from "../utils/multer.js";
 import { uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFileRefference} from "../utils/firebase-fileStorage.js";
-import { createNewFile, createNewProject, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
+import { createNewFile, createNewProject, DeleteFile, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { FinalConstructData } from "../utils/construct-data.js";
 import { Events } from "../utils/events.js";
@@ -15,7 +15,7 @@ export async function uploadController(req, res) {
       return res.status(400).json({ message: "Please upload a file!" })
     }
     if (!req.body.project) {
-      return res.status(400).send({ message: "Please choose a project!" })
+      return res.status(400).send({ message: "No project chosen !!" })
     }
     const project = req.body?.project,
     projectName = project?.split('~')[0],
@@ -57,14 +57,36 @@ export async function uploadController(req, res) {
         return res.status(200).json(Data)
       }
     }
-    
   } catch (err) {
     return res.status(400).send(err)
   }
 }
 
 export async function deleteFileController(req, res) {
-  
+  const userData = await checkUser(req, res)
+  if (!userData || userData.error) return
+  try {
+    if (!req.body.file_ID && !req.body.project_ID, !req.body.file_Name) {
+      return res.status(400).send({ message: "No file Chosen !!" })
+    }
+    const {file_ID, project_ID, file_Name} = req.body
+    const fileReff = getFileRefference(`@${userData?.data.username}/projects/${project_ID}/${file_Name}`)
+    deleteObject(fileReff).then(() => {
+      console.log('single file deleted successfully')
+    }).catch((error) => {
+      console.log(error)
+      return
+    })
+    const result = await DeleteFile({
+      id: file_ID,
+      Project_ID: project_ID 
+    })
+    if (result.error) return res.status(400).send(result.error)
+    const Data = await FinalConstructData(userData?.data?.userID, userData?.data?.username, null, userData.userToken)
+    return res.status(200).json(Data)
+  } catch (error) {
+    return res.status(400).send(err)
+  }
 }
 
 export async function getMainFileURL(req, res) {

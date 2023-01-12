@@ -3,6 +3,7 @@ import mysql from 'mysql2'
 import { v4 } from 'uuid'
 import { promisify } from "util";
 import { async } from '@firebase/util';
+import { getDate_TimeStamp } from '../utils/getDate.js';
 // import { Unique } from '../utils/generate-random.js'
 env.config()
 const db_URL = process.env.database_url
@@ -79,9 +80,10 @@ export async function getOneFile(id, projectID, File_Name){
 
 export async function createNewProject({User_ID, Project_Name, Project_Desc}) {
     const id = `${v4()}`
+    const {date, timeStmp} = getDate_TimeStamp()
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}' and User_ID='${User_ID}'`
-    const query_string_2 = `INSERT INTO Projects (id, User_ID, Project_Name, Project_Desc)
-    VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}')`
+    const query_string_2 = `INSERT INTO Projects (id, User_ID, Project_Name, Project_Desc, Date_created, Time_stamp)
+    VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}',)`
     const result_1 = await query(query_string_1).then((result) => {return result}, (err) => {return err})
     if (result_1?.errno) {
         return {error: `${result_1.code}`}
@@ -96,10 +98,11 @@ export async function createNewProject({User_ID, Project_Name, Project_Desc}) {
     return {success: `project created succesfully`} 
 }
 
-export async function createNewFile({ User_ID, File_Name, Project_ID, fileURL}, onReceived) {
+export async function createNewFile({ User_ID, File_Name, Project_ID, fileURL}) {
     const id = `${v4()}`
-    const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name, File_URL)
-    VALUES ('${id}', '${Project_ID}', '${File_Name}', '${fileURL}')`    
+    const {date, timeStmp} = getDate_TimeStamp()
+    const query_string_2 = `INSERT INTO Files (id, Project_ID, File_Name, File_URL, Date_created, Time_stamp)
+    VALUES ('${id}', '${Project_ID}', '${File_Name}', '${fileURL}', '${date}', '${timeStmp}')`    
     const project = await getOneProjectByUser(Project_ID, User_ID)
     if (project?.error) {
         return {error: `${project.error}`}
@@ -181,7 +184,11 @@ export async function DeleteFile({id, Project_ID}) {
     if (file.length == 0) {
         return {error: `No file with that ID`}
     }
-    
+    const result = await query(query_string_2).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        return {error: `${result?.code}`}
+    }
+    return {success: 'file successfully deleted'}
 }
 
 export async function deleteAllFileUnderProject(projectID) {
