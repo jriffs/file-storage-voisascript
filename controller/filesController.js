@@ -105,8 +105,9 @@ export async function getMainFileURL(req, res) {
   const fileName = req.query.filename
   const projectID = req.params.projectID
   const result = await getOneFile(null, projectID, fileName)
+  console.log(result)
   if (result.error) {
-    return res.status(400).json({ message: err })
+    return res.status(400).json({ message: result.error }) 
   }
   res.status(200).send(result[0].File_URL)
 }
