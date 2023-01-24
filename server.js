@@ -31,3 +31,5 @@ app.use("/files", fileRoute);
 app.listen(port, () => {
   console.log(`listening at port ${port}`);
 });
+
+console.log(process.env.DATABASE_URL)

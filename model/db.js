@@ -6,7 +6,7 @@ import { async } from '@firebase/util';
 import { getDate_TimeStamp } from '../utils/getDate.js';
 // import { Unique } from '../utils/generate-random.js'
 // env.config()
-const db_URL = process.env.database_url
+const db_URL = process.env.DATABASE_URL
 
 const connection = mysql.createConnection(db_URL)
 const query = promisify(connection.query).bind(connection)
