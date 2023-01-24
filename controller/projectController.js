@@ -123,7 +123,7 @@ async function checkUser(request, response) {
     const Bearer = getBearer(request)
     const somn = await authenticate(Bearer)
     if (somn.error) {
-        response.status(400).send({error: `${somn.error}`})
+        response.status(400).send({error: `${somn.error}`, at: `checkUser - authenticate`})
         return {error: somn.error}
     }
     if (somn.isUser === false) {
