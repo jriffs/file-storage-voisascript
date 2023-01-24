@@ -5,7 +5,7 @@ export async function authenticate(bearerToken) {
         "Authorization": `Bearer ${bearerToken}`,
         "originator": `file-storage`
     }
-    const responseObj = await fetch('http://localhost:3000/user/validate', {
+    const responseObj = await fetch('https://voisascript-auth.herokuapp.com/user/validate', {
         method: 'GET',
         mode: 'no-cors',
         headers: headers
