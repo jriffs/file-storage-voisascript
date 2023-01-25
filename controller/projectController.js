@@ -121,6 +121,7 @@ export async function getUserProjects(req, res) {
 
 async function checkUser(request, response) {
     const Bearer = getBearer(request)
+    console.log(`at check user - ${Bearer}`)
     const somn = await authenticate(Bearer)
     if (somn.error) {
         response.status(400).send({error: `${somn.error}`, at: `checkUser - authenticate`})

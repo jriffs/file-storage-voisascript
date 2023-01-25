@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 
 export async function authenticate(bearerToken) {
+    console.log(`at authenticate - ${bearerToken}`);
     let headers = {
         "Authorization": `Bearer ${bearerToken}`,
         "originator": `file-storage`
