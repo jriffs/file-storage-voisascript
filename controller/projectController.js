@@ -17,6 +17,7 @@ export async function createProjectController(req, res) {
             Project_Name: Project_Name,
             Project_Desc: Project_Desc
         })
+        console.log(result)
         if (result.error) return res.status(400).send(result)
         const Data = await FinalConstructData(userData?.data.userID, userData.data.username, null, userData.userToken)
         return res.status(200).send(Data)
