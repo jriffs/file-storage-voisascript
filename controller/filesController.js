@@ -22,19 +22,10 @@ export async function uploadController(req, res) {
     projectID = project?.split('~')[1],
     storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${req.file.originalname}`)
     if (projectName && projectID) {
-      const result = await createNewFile({
-        User_ID: userData?.data?.userID,
-        File_Name: req.file.originalname,
-        fileURL: '',
-        Project_ID: projectID
-      })
-      if (result?.error) {
-        return res.send({error: `${result.error}`, occured: 'At creating new file'})
-      }
       const uploadTask = uploadBytesResumable(storageRef, req.file.buffer, req.file.mimetype)
       uploadTask.on('state_changed', {
         error: (error) => {
-          return res.status(400).send(error.code)
+          return res.status(400).send({error: `There was an error uploading your file - ${error.code}`})
         },
         complete: () => {
           console.log('file Uploaded successfully')
@@ -43,16 +34,16 @@ export async function uploadController(req, res) {
       })
       const func = async () => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-        const result = await UpdateFileURL({
-          Project_ID: projectID,
-          File_Name: req.file.originalname,
+        const result = await createNewFile({
           User_ID: userData?.data?.userID,
-          fileURL: downloadURL
+          File_Name: req.file.originalname,
+          fileURL: downloadURL,
+          Project_ID: projectID
         })
-        if (result.error) {
-          return res.status(400).send(result)
+        if (result?.error) {
+          return res.send({error: `${result.error}`, occured: 'At creating new file'})
         }
-        const constructedURL = `http://localhost:5000/files/${projectID}/url?filename=${req.file.originalname}`
+        const constructedURL = `https://voisascript-file-storage.herokuapp.com/files/${projectID}/url?filename=${req.file.originalname}`
         const Data = await FinalConstructData(userData?.data?.userID, userData?.data?.username, constructedURL, userData.userToken)
         return res.status(200).json(Data)
       }
