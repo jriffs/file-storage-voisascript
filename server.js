@@ -14,7 +14,7 @@ app.use(preparedFileMiddleware)
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, originator, authorization")
-  res.header("Access-Control-Allow-Method", "PUT, POST, GET, DELETE")
+  res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE")
   next()
 })
 
