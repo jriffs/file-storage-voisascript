@@ -8,6 +8,7 @@ import { getFileRefference} from "../utils/firebase-fileStorage.js";
 export async function createProjectController(req, res) {
     try {
         const userData = await checkUser(req, res)
+        console.log(userData)
         if (userData.error) return 
         const {Project_Name, Project_Desc} = req.body
         if (!Project_Name || !Project_Desc) return res.status(400).send({error: 'fields do not match'})
