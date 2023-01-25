@@ -83,7 +83,7 @@ export async function createNewProject({User_ID, Project_Name, Project_Desc}) {
     const {date, timeStmp} = getDate_TimeStamp()
     const query_string_1 = `SELECT * FROM Projects WHERE Project_Name='${Project_Name}' and User_ID='${User_ID}'`
     const query_string_2 = `INSERT INTO Projects (id, User_ID, Project_Name, Project_Desc, Date_created, Time_stamp)
-    VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}',)`
+    VALUES ('${id}', '${User_ID}', '${Project_Name}', '${Project_Desc}', '${date}', '${timeStmp}',)`
     const result_1 = await query(query_string_1).then((result) => {return result}, (err) => {return err})
     if (result_1?.errno) {
         return {error: `${result_1.code}`}
