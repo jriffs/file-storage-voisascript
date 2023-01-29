@@ -81,26 +81,32 @@ export async function deleteFileController(req, res) {
 }
 
 export async function getMainFileURL(req, res) {
-  const Bearer = getBearer(req)
-  const somn = await authenticate(Bearer)
-  const { isUser } = somn
-  if (isUser === false) {
-    return res.sendStatus(403)
+  try {
+    const Bearer = getBearer(req)
+    const somn = await authenticate(Bearer)
+    const { isUser } = somn
+    if (isUser === false) {
+      return res.sendStatus(403)
+    }
+    if (!req.query.filename) {
+      return res.status(400).send('incorrect url')
+    }
+    if (!req.params.projectID) {
+      return res.status(400).send('incorrect url')
+    }
+    const fileName = req.query.filename
+    const projectID = req.params.projectID
+    const result = await getOneFile(null, projectID, fileName)
+    console.log(result)
+    if (result.error) {
+      return res.status(400).json({ message: result.error }) 
+    }
+    console.log(result[0])
+    console.log(result[0]?.File_URL)
+    res.status(200).send(result[0]?.File_URL)
+  } catch (error) {
+    return res.status(400).json({ message: error })
   }
-  if (!req.query.filename) {
-    return res.status(400).send('incorrect url')
-  }
-  if (!req.params.projectID) {
-    return res.status(400).send('incorrect url')
-  }
-  const fileName = req.query.filename
-  const projectID = req.params.projectID
-  const result = await getOneFile(null, projectID, fileName)
-  console.log(result)
-  if (result.error) {
-    return res.status(400).json({ message: result.error }) 
-  }
-  res.status(200).send(result[0].File_URL)
 }
 
 async function checkUser(request, response) {
