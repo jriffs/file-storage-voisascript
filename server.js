@@ -1,5 +1,6 @@
 import express from 'express';
 import { routes } from './routes/routes.js'
+import cors from "cors"
 // import connectdb from './model/db.js'
 import { preparedFileMiddleware } from "./utils/multer.js";
 
@@ -8,6 +9,7 @@ const {projectRoute, fileRoute} = routes
 
 // json parser
 app.use(express.json());
+app.use(cors())
 app.use(express.urlencoded({ extended: true }));
 app.use(preparedFileMiddleware)
 // app.use(localBodyParser) // use when req.body is empty
