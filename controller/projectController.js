@@ -4,27 +4,71 @@ import { authenticate } from "../utils/communicateWithAuth.js";
 import { constructData, FinalConstructData } from "../utils/construct-data.js";
 import { deleteObject, listAll, list} from "firebase/storage";
 import { getFileRefference} from "../utils/firebase-fileStorage.js";
+import { my_Flow, my_Queue } from "../utils/general-queue.js";
+import { v4 } from "uuid";
+import Redis from "redis"
+
+const redisClient = Redis.createClient()
+await redisClient.connect()
+
+
+// const redisOptions = { host: 'localhost', port: '6379' }
+
+/* const my_Queue = {
+    testQueue: new Queue('test', {connection: redisOptions})
+}
+const my_Flow = {
+    testFlow: new FlowProducer()
+} */
 
 export async function createProjectController(req, res) {
     try {
+        const id = `${v4()}`
         const userData = await checkUser(req, res)
         console.log(userData)
-        if (userData.error) return 
-        const {Project_Name, Project_Desc} = req.body
-        if (!Project_Name || !Project_Desc) return res.status(400).send({error: 'fields do not match'})
-        const result = await createNewProject({
-            User_ID: userData.data.userID,
-            Project_Name: Project_Name,
-            Project_Desc: Project_Desc
+        if (userData.error) return
+        const {Project_Name, Project_Desc} = req.body, user_id = userData.data.userID
+        // const job = await my_Queue.testQueue.add("create-project", {Project_Name, Project_Desc, userData}, {removeOnComplete: true})
+        const flow = await my_Flow.create_project_flow.add({
+            name: "create-project",
+            queueName: "create-project-parent",
+            children: [
+                {
+                    name: "create-project-sub",
+                    queueName: "create-project-children",
+                    data: {Project_Name, Project_Desc, userData, id}
+                }
+            ]},
+            {
+                queuesOptions: {
+                  "create-project-parent": {
+                    defaultJobOptions: {
+                      removeOnComplete: true,
+                      attempts: 3,
+                      backoff: {
+                        type: "exponential",
+                        delay: 2000
+                      }
+                    }
+                  },
+                  "create-project-children": {
+                    defaultJobOptions: {
+                      removeOnComplete: true,
+                      attempts: 3,
+                      backoff: {
+                        type: "exponential",
+                        delay: 1000
+                      }
+                    }
+                  }
+                }
         })
-        console.log(result)
-        if (result.error) return res.status(403).send(result)
-        const Data = await FinalConstructData(userData?.data.userID, userData.data.username, null, userData.userToken)
-        return res.status(200).send(Data)
+        await redisClient.hSet(`${id}`, "status", "pending")
+        return res.status(200).send({status: 'pending', resource_ID: id}) 
     } catch (error) {
+        console.log(error)
         return res.status(405).send({error: `Internal Server Error`})
     }
-    
 }
 
 export async function updateProjectController(req, res) {
@@ -121,7 +165,7 @@ export async function getUserProjects(req, res) {
     }
 }
 
-async function checkUser(request, response) {
+ export async function checkUser(request, response) {
     const Bearer = getBearer(request)
     console.log(`at check user - ${Bearer}`)
     const somn = await authenticate(Bearer)

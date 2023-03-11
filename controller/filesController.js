@@ -1,55 +1,96 @@
-import { preparedFileMiddleware } from "../utils/multer.js";
+// import { preparedFileMiddleware } from "../utils/multer.js";
 import { uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFileRefference} from "../utils/firebase-fileStorage.js";
 import { createNewFile, createNewProject, DeleteFile, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { FinalConstructData } from "../utils/construct-data.js";
-import { Events } from "../utils/events.js";
+// import { Events } from "../utils/events.js";
 import getBearer from "../utils/getBearerToken.js";
+import { v4 } from "uuid";
+import { my_Queue, my_Flow } from "../utils/general-queue.js";
+import Redis from "redis"
 
-export async function uploadController(req, res) {
+const redisClient = Redis.createClient()
+await redisClient.connect()
+
+/* export async function uploadController(req, res) {
+  const id = `${v4()}`
   const userData = await checkUser(req, res)
   if (!userData || userData.error) return
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "Please upload a file!" })
-    }
-    if (!req.body.project) {
-      return res.status(400).send({ message: "No project chosen !!" })
-    }
     const project = req.body?.project,
     projectName = project?.split('~')[0],
-    projectID = project?.split('~')[1],
-    storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${req.file.originalname}`)
-    if (projectName && projectID) {
-      const uploadTask = uploadBytesResumable(storageRef, req.file.buffer, req.file.mimetype)
-      uploadTask.on('state_changed', {
-        error: (error) => {
-          return res.status(400).send({error: `There was an error uploading your file - ${error.code}`})
-        },
-        complete: () => {
-          console.log('file Uploaded successfully')
-          Events.emit('upload-event-sucess', func)  
-        }
-      })
-      const func = async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-        const result = await createNewFile({
-          User_ID: userData?.data?.userID,
-          File_Name: req.file.originalname,
-          fileURL: downloadURL,
-          Project_ID: projectID
-        })
-        if (result?.error) {
-          return res.send({error: `${result.error}`, occured: 'At creating new file'})
-        }
-        const constructedURL = `https://voisascript-file-storage.herokuapp.com/files/${projectID}/url?filename=${req.file.originalname}`
-        const Data = await FinalConstructData(userData?.data?.userID, userData?.data?.username, constructedURL, userData.userToken)
-        return res.status(200).json(Data)
+    projectID = project?.split('~')[1], 
+    {file} = req,
+    job = await my_Queue.create_file_queue.add("file-upload", 
+    {projectName, projectID, userData, file, id}, 
+    {
+      removeOnComplete: true, 
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000
       }
-    }
+    })
+    return res.status(200).json({status: "pending", resource_ID: id})
   } catch (err) {
     return res.status(400).send(err)
+  }
+} */
+
+export async function uploadController(req, res) {
+  const id = `${v4()}`
+  const userData = await checkUser(req, res)
+  if (!userData || userData.error) return
+  try {
+    const project = req.body?.project,
+    projectName = project?.split('~')[0],
+    projectID = project?.split('~')[1], 
+    {file} = req
+    const flow = await my_Flow.create_project_flow.add({
+      name: "construct-data",
+      queueName: "construct-data",
+      children: [
+        {
+          name: "create-file-db",
+          queueName: "create-file",
+          children: [
+            {
+              name: "file-upload",
+              queueName: "create-file",
+              data: {projectName, projectID, userData, file, id}
+            }
+          ]
+        }
+      ]},
+      {
+        queuesOptions: {
+          "create-file": {
+            defaultJobOptions: {
+              removeOnComplete: true,
+              attempts: 3,
+              backoff: {
+                type: "exponential",
+                delay: 2000
+              }
+            }
+          },
+          "construct-data": {
+            defaultJobOptions: {
+              removeOnComplete: true,
+              attempts: 3,
+              backoff: {
+                type: "exponential",
+                delay: 1000
+              }
+            }
+          }
+        }
+    })
+    await redisClient.hSet(`${id}`, "status", "pending")
+    return res.status(200).json({status: "pending", resource_ID: id})
+  } catch (error) {
+    return res.status(503).send({error: `An error occuired while creating the file: ${error}`})
   }
 }
 
@@ -109,7 +150,7 @@ export async function getMainFileURL(req, res) {
   }
 }
 
-async function checkUser(request, response) {
+export async function checkUser(request, response) {
   const Bearer = getBearer(request)
   const somn = await authenticate(Bearer)
   if (somn.error) {

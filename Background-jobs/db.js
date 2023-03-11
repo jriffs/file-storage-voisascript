@@ -2,13 +2,13 @@
 import mysql from 'mysql2'
 import { v4 } from 'uuid'
 import { promisify } from "util";
-import { async } from '@firebase/util';
 import { getDate_TimeStamp } from '../utils/getDate.js';
 import fs from "fs"
 // import { Unique } from '../utils/generate-random.js'
 // env.config()
 const db_URL = process.env.DATABASE_URL
 
+// console.log(db_URL)
 const config = {
     host: '',
     user: '',
@@ -17,8 +17,8 @@ const config = {
     keepAliveInitialDelay: 10000,
     enableKeepAlive: true,
     ssl: {
-        key: fs.readFileSync('./client-key.pem'),
-        cert: fs.readFileSync('./client-cert.pem')
+        key: fs.readFileSync('../client-key.pem'),
+        cert: fs.readFileSync('../client-cert.pem')
     }
 }
 
@@ -36,6 +36,8 @@ const pool = mysql.createPool(config)
 // const query = promisify(connection.query).bind(connection)
 const query = promisify(pool.query).bind(pool)
 
+// console.log(query)
+
 /* connection.connect((err) => {
     if (err) {
         throw err
@@ -47,6 +49,16 @@ export async function getAll(table) {
     const query_string = `SELECT * FROM ${table}`
     const result = await query(query_string).then((result) => {return result}, (err) => {return err})
     if (result?.errno) {
+        return {error: `${result.code}`}
+    }
+    return result
+}
+
+export async function getAllPool(table) { 
+    const query_string = `SELECT * FROM ${table}`
+    const result = await query(query_string).then((result) => {return result}, (err) => {return err})
+    if (result?.errno) {
+        console.log(result)
         return {error: `${result.code}`}
     }
     return result

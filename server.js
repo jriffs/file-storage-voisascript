@@ -5,7 +5,7 @@ import cors from "cors"
 import { preparedFileMiddleware } from "./utils/multer.js";
 
 const app = express();
-const {projectRoute, fileRoute} = routes
+const {projectRoute, fileRoute, getResource, workerRouter} = routes
 
 // json parser
 app.use(express.json());
@@ -30,6 +30,10 @@ const port = process.env.PORT || 5000;
 app.use("/projects", projectRoute);
 // router for all the files endpoint
 app.use("/files", fileRoute);
+
+app.use("/task", getResource)
+
+app.use("/testing", workerRouter)
 
 app.listen(port, () => {
   console.log(`listening at port ${port}`);

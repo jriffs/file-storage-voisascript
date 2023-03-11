@@ -1,4 +1,4 @@
-import { getAllProjectsByUser, getAllFilesByUser } from "../model/db.js";
+import { getAllProjectsByUser, getAllFilesByUser } from "./db.js";
 
 export async function constructData(userID) {
     let data,
@@ -31,8 +31,9 @@ export async function constructData(userID) {
 
 export async function FinalConstructData(userId, username, url, userToken) {
     const { finalProjectsArr, projectStat, finalFilesArr, fileStat} = await constructData(userId)
+    console.log(url)
     if (url) {
-        // console.log(`from construct, url is: ${url}`)
+        console.log(`from construct, url is: ${url}`)
         return {
             url,
             userToken,
