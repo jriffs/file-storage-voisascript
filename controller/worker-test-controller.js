@@ -1,4 +1,4 @@
-import { Queue, FlowProducer } from "bullmq";
+/* import { Queue, FlowProducer } from "bullmq";
 import Redis from "redis";
 
 const redisClient = Redis.createClient()
@@ -56,4 +56,4 @@ export async function getWorkerResult(req, res) {
     } catch (e) {
         
     }
-}
+} */

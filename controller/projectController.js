@@ -7,8 +7,18 @@ import { getFileRefference} from "../utils/firebase-fileStorage.js";
 import { my_Flow, my_Queue } from "../utils/general-queue.js";
 import { v4 } from "uuid";
 import Redis from "redis"
+// import env from 'dotenv'
 
-const redisClient = Redis.createClient()
+// env.config()
+
+const redisClient = Redis.createClient({
+    password: process.env.REDIS_DB_PASS,
+    socket: {
+        host: 'redis-14244.c265.us-east-1-2.ec2.cloud.redislabs.com',
+        port: 14244
+    },
+    username: "Admin_user"
+})
 await redisClient.connect()
 
 

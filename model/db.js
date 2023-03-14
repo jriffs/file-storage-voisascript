@@ -1,4 +1,4 @@
-// import env from 'dotenv'
+import env from 'dotenv'
 import mysql from 'mysql2'
 import { v4 } from 'uuid'
 import { promisify } from "util";
@@ -6,7 +6,7 @@ import { async } from '@firebase/util';
 import { getDate_TimeStamp } from '../utils/getDate.js';
 import fs from "fs"
 // import { Unique } from '../utils/generate-random.js'
-// env.config()
+env.config()
 const db_URL = process.env.DATABASE_URL
 
 const config = {

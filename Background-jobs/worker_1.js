@@ -5,23 +5,33 @@ import { createNewProject, createNewFile } from "./db.js";
 import { FinalConstructData } from "./construct-data.js";
 import { getFileRefference } from '../utils/firebase-fileStorage.js';
 import { uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { Events } from '../utils/events.js';
+import IORedis from "ioredis"
+// import env from "dotenv";
 
-const redisOptions = { host: 'localhost', port: '6379' }
+// env.config()
+
+const connection = new IORedis(process.env.REDISCLOUD_URL)
 
 const my_Queue = {
-    testQueue: new Queue('test', {connection: redisOptions})
+    testQueue: new Queue('test', { connection })
 }
 
 /* const worker_1 = new Worker("test", worker_1_Handler, {connection: redisOptions})
 const worker_2 = new Worker("teacher", worker_2_Handler, {connection: redisOptions})
 const worker_3 = new Worker("student", worker_3_Handler, {connection: redisOptions}) */
-const create_Project_Parent_Worker = new Worker("create-project-parent", create_Project_Parent_handler, {connection: redisOptions})
-const create_Project_Children_Worker = new Worker("create-project-children", create_Project_Children_handler, {connection: redisOptions})
-const create_File_Worker = new Worker("create-file", create_File_Handler, {connection: redisOptions})
-const construct_Data_Worker = new Worker("construct-data", construct_Data_Handler, {connection: redisOptions})
+const create_Project_Parent_Worker = new Worker("create-project-parent", create_Project_Parent_handler, { connection })
+const create_Project_Children_Worker = new Worker("create-project-children", create_Project_Children_handler, { connection })
+const create_File_Worker = new Worker("create-file", create_File_Handler, { connection })
+const construct_Data_Worker = new Worker("construct-data", construct_Data_Handler, { connection })
 
-const redisClient = Redis.createClient()
+const redisClient = Redis.createClient({
+    password: process.env.REDIS_DB_PASS,
+    socket: {
+        host: 'redis-14244.c265.us-east-1-2.ec2.cloud.redislabs.com',
+        port: 14244
+    },
+    username: "Admin_user"
+})
 await redisClient.connect()
 
 /* const worker_1 = new Worker("flow-1", worker_1_Handler, {connection: redisOptions})
@@ -66,13 +76,13 @@ async function worker_3_Handler(job) {
     }
 } */
 
-create_Project_Children_Worker.on("failed", async(job)=> {
+create_Project_Children_Worker.on("failed", async (job) => {
     if (job.attemptsMade == 3) {
         console.log(`${job.name} has reached its final attempt`)
         await redisClient.hSet(`${job.data.resource_ID}`, "status", "failed")
     }
 })
-create_Project_Parent_Worker.on("failed", async (job)=> {
+create_Project_Parent_Worker.on("failed", async (job) => {
     if (job.attemptsMade == 3) {
         console.log(`${job.name} has reached its final attempt`)
         await redisClient.hSet(`${job.data.resource_ID}`, "status", "failed")
@@ -86,7 +96,7 @@ async function create_Project_Parent_handler(job) {
             const childrenValues = Object.values(await job.getChildrenValues())
             const Children_Result = childrenValues[0]
             // console.log(result)
-            const {userData, result, id} = Children_Result
+            const { userData, result, id } = Children_Result
             if (result.error) {
                 job.data.resource_ID = id
                 throw new Error(`${result.error}`)
@@ -99,14 +109,14 @@ async function create_Project_Parent_handler(job) {
         }
     } catch (error) {
         console.error(error)
-    } 
+    }
 }
 
 async function create_Project_Children_handler(job) {
     try {
         if (job.name == "create-project-sub") {
             // console.log(job.name)
-            const {Project_Name, Project_Desc, userData, id} = job.data
+            const { Project_Name, Project_Desc, userData, id } = job.data
             const result = await createNewProject({
                 User_ID: userData?.data.userID,
                 Project_Desc,
@@ -117,24 +127,24 @@ async function create_Project_Children_handler(job) {
                 job.data.resource_ID = id
                 const error = new Error(result.error)
                 throw error
-            }else {
-                return {userData, result, id}
+            } else {
+                return { userData, result, id }
             }
             // return {message: "some message"}
-        } 
+        }
     } catch (error) {
         console.error(error)
     }
 }
 
-create_File_Worker.on("failed", async (job)=> {
+create_File_Worker.on("failed", async (job) => {
     if (job.attemptsMade == 3) {
         console.log(`${job.name} has reached its final attempt`)
         await redisClient.hSet(`${job.data.resource_ID}`, "status", "failed")
     }
 })
 
-construct_Data_Worker.on("failed", async(job)=> {
+construct_Data_Worker.on("failed", async (job) => {
     if (job.attemptsMade == 3) {
         console.log(`${job.name} has reached its final attempt`)
         await redisClient.hSet(`${job.data.resource_ID}`, "status", "failed")
@@ -150,7 +160,7 @@ async function create_File_Handler(job) {
         switch (job.name) {
             case "file-upload":
                 console.log('file-upload job started')
-                const {projectName, projectID, userData, file, id} = job.data
+                const { projectName, projectID, userData, file, id } = job.data
                 file.buffer = Buffer.from(file.buffer)
                 const storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${file.originalname}`)
                 const uploadTask = uploadBytesResumable(storageRef, file.buffer, file.mimetype)
@@ -169,11 +179,11 @@ async function create_File_Handler(job) {
                     })
                 })
                 console.log(`downloadURL is: ${downloadURL}`)
-                return {projectName, projectID, userData, id, downloadURL, filename: file.originalname}
+                return { projectName, projectID, userData, id, downloadURL, filename: file.originalname }
                 break;
             case "create-file-db":
                 const childrenValues = await job.getChildrenValues(),
-                JobData = Object.values(childrenValues)
+                    JobData = Object.values(childrenValues)
                 // console.log(JobData[0].filename) 
                 const result = await createNewFile({
                     User_ID: JobData[0].userData?.data?.userID,
@@ -189,9 +199,9 @@ async function create_File_Handler(job) {
                         userData: JobData[0].userData,
                         filename: JobData[0].filename
                     }
-                }else {
+                } else {
                     const childrenValues = await job.getChildrenValues(),
-                    JobData = Object.values(childrenValues)
+                        JobData = Object.values(childrenValues)
                     job.data.resource_ID = JobData[0].id
                     throw new Error(`${result.error}`)
                 }
@@ -199,10 +209,10 @@ async function create_File_Handler(job) {
             default: console.log(job.name)
                 break;
         }
-        return 
+        return
     } catch (error) {
         const childrenValues = await job.getChildrenValues(),
-        JobData = Object.values(childrenValues)
+            JobData = Object.values(childrenValues)
         job.data.resource_ID = JobData[0].id
         throw error
     }
@@ -212,14 +222,14 @@ async function construct_Data_Handler(job) {
     console.log(`${job.name} has started...`)
     try {
         const childrenValues = await job.getChildrenValues(),
-        JobData = Object.values(childrenValues)
+            JobData = Object.values(childrenValues)
         const constructedURL = `https://voisascript-file-storage.herokuapp.com/files/${JobData[0].projectID}/url?filename=${JobData[0].filename}`
         const Data = await FinalConstructData(JobData[0].userData?.data?.userID, JobData[0].userData?.data?.username, constructedURL, JobData[0].userData.userToken)
         await redisClient.hSet(`${JobData[0].id}`, "status", "success")
         await redisClient.hSet(`${JobData[0].id}`, "data", JSON.stringify(Data))
     } catch (error) {
         const childrenValues = await job.getChildrenValues(),
-        JobData = Object.values(childrenValues)
+            JobData = Object.values(childrenValues)
         job.data.resource_ID = JobData[0].id
         throw new Error(`${error}`)
     }

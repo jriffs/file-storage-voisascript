@@ -1,6 +1,6 @@
 // import { preparedFileMiddleware } from "../utils/multer.js";
 import { uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
-import { getFileRefference} from "../utils/firebase-fileStorage.js";
+import { getFileRefference } from "../utils/firebase-fileStorage.js";
 import { createNewFile, createNewProject, DeleteFile, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { FinalConstructData } from "../utils/construct-data.js";
@@ -9,8 +9,19 @@ import getBearer from "../utils/getBearerToken.js";
 import { v4 } from "uuid";
 import { my_Queue, my_Flow } from "../utils/general-queue.js";
 import Redis from "redis"
+// import env from "dotenv";
 
-const redisClient = Redis.createClient()
+// env.config()
+
+
+const redisClient = Redis.createClient({
+  password: process.env.REDIS_DB_PASS,
+  socket: {
+      host: 'redis-14244.c265.us-east-1-2.ec2.cloud.redislabs.com',
+      port: 14244
+  },
+  username: "Admin_user"
+})
 await redisClient.connect()
 
 /* export async function uploadController(req, res) {
@@ -44,9 +55,9 @@ export async function uploadController(req, res) {
   if (!userData || userData.error) return
   try {
     const project = req.body?.project,
-    projectName = project?.split('~')[0],
-    projectID = project?.split('~')[1], 
-    {file} = req
+      projectName = project?.split('~')[0],
+      projectID = project?.split('~')[1],
+      { file } = req
     const flow = await my_Flow.create_project_flow.add({
       name: "construct-data",
       queueName: "construct-data",
@@ -58,11 +69,12 @@ export async function uploadController(req, res) {
             {
               name: "file-upload",
               queueName: "create-file",
-              data: {projectName, projectID, userData, file, id}
+              data: { projectName, projectID, userData, file, id }
             }
           ]
         }
-      ]},
+      ]
+    },
       {
         queuesOptions: {
           "create-file": {
@@ -86,11 +98,11 @@ export async function uploadController(req, res) {
             }
           }
         }
-    })
+      })
     await redisClient.hSet(`${id}`, "status", "pending")
-    return res.status(200).json({status: "pending", resource_ID: id})
+    return res.status(200).json({ status: "pending", resource_ID: id })
   } catch (error) {
-    return res.status(503).send({error: `An error occuired while creating the file: ${error}`})
+    return res.status(503).send({ error: `An error occuired while creating the file: ${error}` })
   }
 }
 
@@ -101,7 +113,7 @@ export async function deleteFileController(req, res) {
     if (!req.body.file_ID && !req.body.project_ID, !req.body.file_Name) {
       return res.status(400).send({ message: "No file Chosen !!" })
     }
-    const {file_ID, project_ID, file_Name} = req.body
+    const { file_ID, project_ID, file_Name } = req.body
     const fileReff = getFileRefference(`@${userData?.data.username}/projects/${project_ID}/${file_Name}`)
     deleteObject(fileReff).then(() => {
       console.log('single file deleted successfully')
@@ -111,7 +123,7 @@ export async function deleteFileController(req, res) {
     })
     const result = await DeleteFile({
       id: file_ID,
-      Project_ID: project_ID 
+      Project_ID: project_ID
     })
     if (result.error) return res.status(400).send(result.error)
     const Data = await FinalConstructData(userData?.data?.userID, userData?.data?.username, null, userData.userToken)
@@ -140,7 +152,7 @@ export async function getMainFileURL(req, res) {
     const result = await getOneFile(null, projectID, fileName)
     console.log(result)
     if (result.error) {
-      return res.status(400).json({ message: result.error }) 
+      return res.status(400).json({ message: result.error })
     }
     console.log(result[0])
     console.log(result[0]?.File_URL)
@@ -154,13 +166,13 @@ export async function checkUser(request, response) {
   const Bearer = getBearer(request)
   const somn = await authenticate(Bearer)
   if (somn.error) {
-      response.status(400).send({error: `${somn.error}`})
-      return {error: somn.error}
+    response.status(400).send({ error: `${somn.error}` })
+    return { error: somn.error }
   }
   if (somn.isUser === false) {
-      response.status(400).send({error: 'Unauthorized User !!'})
-      return {error: somn.error}
+    response.status(400).send({ error: 'Unauthorized User !!' })
+    return { error: somn.error }
   }
-  return {data: somn.userData, userToken: Bearer}
+  return { data: somn.userData, userToken: Bearer }
 }
 

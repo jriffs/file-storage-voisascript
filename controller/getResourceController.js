@@ -1,8 +1,17 @@
 import Redis from 'redis'
 import { checkUser } from './filesController.js'
+// import env from "dotenv";
 
+// env.config()
 
-const redisClient = Redis.createClient()
+const redisClient = Redis.createClient({
+  password: process.env.REDIS_DB_PASS,
+  socket: {
+      host: 'redis-14244.c265.us-east-1-2.ec2.cloud.redislabs.com',
+      port: 14244
+  },
+  username: "Admin_user"
+})
 await redisClient.connect()
 
 export async function getResourceController(req, res) {

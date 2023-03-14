@@ -33,7 +33,7 @@ app.use("/files", fileRoute);
 
 app.use("/task", getResource)
 
-app.use("/testing", workerRouter)
+// app.use("/testing", workerRouter)
 
 app.listen(port, () => {
   console.log(`listening at port ${port}`);
