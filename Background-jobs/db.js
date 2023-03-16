@@ -17,8 +17,8 @@ const config = {
     keepAliveInitialDelay: 10000,
     enableKeepAlive: true,
     ssl: {
-        key: fs.readFileSync('../client-key.pem'),
-        cert: fs.readFileSync('../client-cert.pem')
+        key: fs.readFileSync('client-key.pem'),
+        cert: fs.readFileSync('client-cert.pem')
     }
 }
 
