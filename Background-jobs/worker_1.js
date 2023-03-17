@@ -183,7 +183,7 @@ async function create_File_Handler(job) {
                 break;
             case "create-file-db":
                 const childrenValues = await job.getChildrenValues(),
-                    JobData = Object.values(childrenValues)
+                JobData = Object.values(childrenValues)
                 // console.log(JobData[0].filename) 
                 const result = await createNewFile({
                     User_ID: JobData[0].userData?.data?.userID,
@@ -192,6 +192,7 @@ async function create_File_Handler(job) {
                     Project_ID: JobData[0].projectID
                 })
                 if (result?.success) {
+                    console.log("file created successfully ...")
                     return {
                         projectID: JobData[0].projectID,
                         downloadURL: JobData[0].downloadURL,
@@ -201,8 +202,9 @@ async function create_File_Handler(job) {
                     }
                 } else {
                     const childrenValues = await job.getChildrenValues(),
-                        JobData = Object.values(childrenValues)
+                    JobData = Object.values(childrenValues)
                     job.data.resource_ID = JobData[0].id
+                    console.log(result.error)
                     throw new Error(`${result.error}`)
                 }
                 break;
