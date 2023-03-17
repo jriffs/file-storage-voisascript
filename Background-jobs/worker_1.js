@@ -164,6 +164,10 @@ async function create_File_Handler(job) {
                 file.buffer = Buffer.from(file.buffer)
                 const storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${file.originalname}`)
                 const uploadTask = uploadBytesResumable(storageRef, file.buffer, file.mimetype)
+                setInterval(() => {
+                    console.log(`The state of the uploadTask is: ${uploadTask.snapshot.state}`)
+                    console.log(`The progress of the uploadTask is: ${uploadTask.snapshot.bytesTransferred}`)
+                }, 2000);
                 const downloadURL = await new Promise((resolve, reject) => {
                     uploadTask.on('state_changed', {
                         error: async (error) => {
