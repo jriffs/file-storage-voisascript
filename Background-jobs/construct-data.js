@@ -9,9 +9,7 @@ export async function constructData(userID) {
     fileStat = 0
     const projectsArr = await DB.getAllProjectsByUser(userID)
     console.log(`ProjectsArr is:`)
-    console.log(`ProjectsArr length is: ${projectsArr.length}`)
     console.log(projectsArr)
-    console.log(Array.isArray(projectsArr))
     if (projectsArr?.error) {
         console.log(projectsArr.error)
         return
@@ -39,7 +37,6 @@ export async function constructData(userID) {
 
 export async function FinalConstructData(userId, username, url, userToken) {
     const { finalProjectsArr, projectStat, finalFilesArr, fileStat} = await constructData(userId)
-    console.log(url)
     if (url) {
         console.log(`from construct, url is: ${url}`)
         return {
