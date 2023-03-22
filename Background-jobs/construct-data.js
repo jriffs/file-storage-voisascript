@@ -8,13 +8,10 @@ export async function constructData(userID) {
     finalFilesArr = [],
     fileStat = 0
     const projectsArr = await DB.getAllProjectsByUser(userID)
-    console.log(projectsArr)
+    console.log(`ProjectsArr is: ${projectsArr}`)
     if (projectsArr?.error) {
         console.log(projectsArr.error)
         return
-    }
-    if (Object.hasOwnProperty(projectsArr, "length")) {
-        throw new Error("ProjectsArr is possibly not in array format")
     }
     if (Array.isArray(projectsArr)) {
         throw new Error("ProjectsArr is possibly not in array format")
