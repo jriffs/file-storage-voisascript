@@ -9,7 +9,9 @@ export async function constructData(userID) {
     fileStat = 0
     const projectsArr = await DB.getAllProjectsByUser(userID)
     console.log(`ProjectsArr is:`)
+    console.log(`ProjectsArr length is: ${projectsArr.length}`)
     console.log(projectsArr)
+    console.log(Array.isArray(projectsArr))
     if (projectsArr?.error) {
         console.log(projectsArr.error)
         return
