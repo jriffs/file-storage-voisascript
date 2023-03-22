@@ -1,19 +1,27 @@
-import { getAllProjectsByUser, getAllFilesByUser } from "./db.js";
+// import { getAllProjectsByUser, getAllFilesByUser } from "./db.js";
+import { DatabaseAdmin } from "./db-administrator.js";
 
 export async function constructData(userID) {
+    const DB = new DatabaseAdmin()
     let data,
     finalProjectsArr = [],
     finalFilesArr = [],
     fileStat = 0
-    const projectsArr = await getAllProjectsByUser(userID)
+    const projectsArr = await DB.getAllProjectsByUser(userID)
     console.log(projectsArr)
     if (projectsArr?.error) {
         console.log(projectsArr.error)
         return
     }
+    if (Object.hasOwnProperty(projectsArr, "length")) {
+        throw new Error("ProjectsArr is possibly not in array format")
+    }
+    if (Array.isArray(projectsArr)) {
+        throw new Error("ProjectsArr is possibly not in array format")
+    }
     for (const project of projectsArr) {
         const {id} = project
-        const files = await getAllFilesByUser(id)
+        const files = await DB.getAllFilesByUser(id)
         if (files?.error) return
         finalFilesArr.push(files)
         fileStat = fileStat + files.length

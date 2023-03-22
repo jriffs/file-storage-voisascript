@@ -1,4 +1,5 @@
-import { getAll, getOneProjectByUser, UpdateProject, createNewProject, DeleteProject, deleteAllFileUnderProject} from "../model/db.js"
+// import { UpdateProject, DeleteProject, deleteAllFileUnderProject} from "../model/db.js"
+import { DatabaseAdmin } from "../model/db-admin.js";
 import getBearer from "../utils/getBearerToken.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { constructData, FinalConstructData } from "../utils/construct-data.js";
@@ -89,7 +90,8 @@ export async function updateProjectController(req, res) {
         if (!New_Project_Name || !New_Project_Desc || !Project_ID) {
             return res.status(400).send({error: 'some fields missing'})
         }
-        const result = await UpdateProject({
+        const DB = new DatabaseAdmin()
+        const result = await DB.UpdateProject({
             Project_ID: Project_ID,
             Project_Desc: New_Project_Desc,
             User_ID: userData.data.userID,
@@ -112,8 +114,10 @@ export async function deleteProjectController(req, res) {
         const projectReff = getFileRefference(`@${userData?.data.username}/projects`)
         const {prefixes} = await list(projectReff)
         // res.status(200).send(userData.data.userID)
+        const DB = new DatabaseAdmin()
         if (prefixes.length == 0) {
-            const result = await DeleteProject({
+            
+            const result = await DB.DeleteProject({
                 id: Project_ID,
                 User_ID: userData.data.userID
             })
@@ -142,13 +146,14 @@ export async function deleteProjectController(req, res) {
                 })
             })
             // deleting all the files under that project from the database
-            const result1 = await deleteAllFileUnderProject(Project_ID)
+            const result1 = await DB.deleteAllFileUnderProject(Project_ID)
             if (result1.error) {
                 res.status(400).send({error: 'An unexpected Error came up'})
                 return
             }
             // deleting the project from the database
-            const result2 = await DeleteProject({
+
+            const result2 = await DB.DeleteProject({
                 id: Project_ID,
                 User_ID: userData.data.userID
             })

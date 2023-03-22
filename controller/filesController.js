@@ -1,13 +1,13 @@
 // import { preparedFileMiddleware } from "../utils/multer.js";
-import { uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import { deleteObject } from "firebase/storage";
 import { getFileRefference } from "../utils/firebase-fileStorage.js";
-import { createNewFile, createNewProject, DeleteFile, getOneFile, getOneProjectByUser, UpdateFileURL } from "../model/db.js";
+// import { DeleteFile, getOneFile } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { FinalConstructData } from "../utils/construct-data.js";
-// import { Events } from "../utils/events.js";
+import { DatabaseAdmin } from "../model/db-admin";
 import getBearer from "../utils/getBearerToken.js";
 import { v4 } from "uuid";
-import { my_Queue, my_Flow } from "../utils/general-queue.js";
+import { my_Flow } from "../utils/general-queue.js";
 import Redis from "redis"
 // import env from "dotenv";
 
@@ -121,7 +121,8 @@ export async function deleteFileController(req, res) {
       console.log(error)
       return
     })
-    const result = await DeleteFile({
+    const DB = new DatabaseAdmin()
+    const result = await DB.DeleteFile({
       id: file_ID,
       Project_ID: project_ID
     })
@@ -149,7 +150,8 @@ export async function getMainFileURL(req, res) {
     }
     const fileName = req.query.filename
     const projectID = req.params.projectID
-    const result = await getOneFile(null, projectID, fileName)
+    const DB = new DatabaseAdmin()
+    const result = await DB.getOneFile(null, projectID, fileName)
     console.log(result)
     if (result.error) {
       return res.status(400).json({ message: result.error })

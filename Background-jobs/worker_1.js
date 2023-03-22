@@ -1,7 +1,8 @@
 import { Worker } from 'bullmq'
 import { Queue } from "bullmq"
 import Redis from "redis";
-import { createNewProject, createNewFile } from "./db.js";
+// import { createNewProject, createNewFile } from "./db.js";
+import { DatabaseAdmin } from "./db-administrator.js";
 import { FinalConstructData } from "./construct-data.js";
 import { getFileRefference } from '../utils/firebase-fileStorage.js';
 import { uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -117,7 +118,8 @@ async function create_Project_Children_handler(job) {
         if (job.name == "create-project-sub") {
             // console.log(job.name)
             const { Project_Name, Project_Desc, userData, id } = job.data
-            const result = await createNewProject({
+            const DB = new DatabaseAdmin()
+            const result = await DB.createNewProject({
                 User_ID: userData?.data.userID,
                 Project_Desc,
                 Project_Name
@@ -184,8 +186,9 @@ async function create_File_Handler(job) {
             case "create-file-db":
                 const childrenValues = await job.getChildrenValues(),
                 JobData = Object.values(childrenValues)
-                // console.log(JobData[0].filename) 
-                const result = await createNewFile({
+                // console.log(JobData[0].filename)
+                const DB = new DatabaseAdmin() 
+                const result = await DB.createNewFile({
                     User_ID: JobData[0].userData?.data?.userID,
                     File_Name: JobData[0].filename,
                     fileURL: JobData[0].downloadURL,
