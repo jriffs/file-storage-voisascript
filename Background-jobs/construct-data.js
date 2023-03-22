@@ -16,7 +16,7 @@ export async function constructData(userID) {
         console.log(projectsArr.error)
         return
     }
-    if (Array.isArray(projectsArr)) {
+    if (!(Array.isArray(projectsArr))) {
         throw new Error("ProjectsArr is possibly not in array format")
     }
     for (const project of projectsArr) {
