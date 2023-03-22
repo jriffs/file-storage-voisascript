@@ -4,7 +4,7 @@ import { getFileRefference } from "../utils/firebase-fileStorage.js";
 // import { DeleteFile, getOneFile } from "../model/db.js";
 import { authenticate } from "../utils/communicateWithAuth.js";
 import { FinalConstructData } from "../utils/construct-data.js";
-import { DatabaseAdmin } from "../model/db-admin";
+import { DatabaseAdmin } from "../model/db-admin.js";
 import getBearer from "../utils/getBearerToken.js";
 import { v4 } from "uuid";
 import { my_Flow } from "../utils/general-queue.js";
