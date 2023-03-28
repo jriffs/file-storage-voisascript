@@ -93,10 +93,8 @@ create_Project_Parent_Worker.on("failed", async (job) => {
 async function create_Project_Parent_handler(job) {
     try {
         if (job.name == "create-project") {
-            // console.log(job.name)
             const childrenValues = Object.values(await job.getChildrenValues())
             const Children_Result = childrenValues[0]
-            // console.log(result)
             const { userData, result, id } = Children_Result
             if (result.error) {
                 job.data.resource_ID = id
@@ -116,7 +114,6 @@ async function create_Project_Parent_handler(job) {
 async function create_Project_Children_handler(job) {
     try {
         if (job.name == "create-project-sub") {
-            // console.log(job.name)
             const { Project_Name, Project_Desc, userData, id } = job.data
             const DB = new DatabaseAdmin()
             const result = await DB.createNewProject({
@@ -124,7 +121,6 @@ async function create_Project_Children_handler(job) {
                 Project_Desc,
                 Project_Name
             })
-            console.log(result)
             if (result?.error) {
                 job.data.resource_ID = id
                 const error = new Error(result.error)
@@ -166,6 +162,11 @@ async function create_File_Handler(job) {
                 file.buffer = Buffer.from(file.buffer)
                 const storageRef = getFileRefference(`@${userData?.data?.username}/projects/${projectID}/${file.originalname}`)
                 const uploadTask = uploadBytesResumable(storageRef, file.buffer, file.mimetype)
+                while (uploadTask.snapshot.state === "running" || uploadTask.snapshot.state === "paused") {
+                    await new Promise((resolve) => setTimeout(resolve, 5000))
+                    console.log(`audio has uploaded: ${uploadTask.snapshot.bytesTransferred}`)
+                    console.log(uploadTask.snapshot.state)
+                }
                 const downloadURL = await new Promise((resolve, reject) => {
                     uploadTask.on('state_changed', {
                         error: async (error) => {
@@ -180,13 +181,11 @@ async function create_File_Handler(job) {
                         }
                     })
                 })
-                console.log(`downloadURL is: ${downloadURL}`)
                 return { projectName, projectID, userData, id, downloadURL, filename: file.originalname }
                 break;
             case "create-file-db":
                 const childrenValues = await job.getChildrenValues(),
                 JobData = Object.values(childrenValues)
-                // console.log(JobData[0].filename)
                 const DB = new DatabaseAdmin() 
                 const result = await DB.createNewFile({
                     User_ID: JobData[0].userData?.data?.userID,
