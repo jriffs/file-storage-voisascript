@@ -54,11 +54,11 @@ export async function uploadController(req, res) {
   const userData = await checkUser(req, res)
   if (!userData || userData.error) return
   try {
-    const project = req.body?.project,
+      const project = req.body?.project,
       projectName = project?.split('~')[0],
       projectID = project?.split('~')[1],
       { file } = req
-    const flow = await my_Flow.create_project_flow.add({
+      const flow = await my_Flow.create_project_flow.add({
       name: "construct-data",
       queueName: "construct-data",
       children: [
@@ -80,7 +80,7 @@ export async function uploadController(req, res) {
           "create-file": {
             defaultJobOptions: {
               removeOnComplete: true,
-              attempts: 3,
+              attempts: 2,
               backoff: {
                 type: "exponential",
                 delay: 2000
@@ -90,7 +90,7 @@ export async function uploadController(req, res) {
           "construct-data": {
             defaultJobOptions: {
               removeOnComplete: true,
-              attempts: 3,
+              attempts: 2,
               backoff: {
                 type: "exponential",
                 delay: 1000
@@ -99,8 +99,8 @@ export async function uploadController(req, res) {
           }
         }
       })
-    await redisClient.hSet(`${id}`, "status", "pending")
-    return res.status(200).json({ status: "pending", resource_ID: id })
+      await redisClient.hSet(`${id}`, "status", "pending")
+      return res.status(200).json({ status: "pending", resource_ID: id })
   } catch (error) {
     return res.status(503).send({ error: `An error occuired while creating the file: ${error}` })
   }
